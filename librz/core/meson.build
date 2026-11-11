@@ -74,8 +74,6 @@ rz_core_sources = [
   'serialize_core.c',
   'task.c',
   'yank.c',
-  'p/core_dex.c',
-  'p/core_java.c',
   cmd_descs_ch,
   'cmd/cmd.c',
   'cmd/cmd_alias.c',
@@ -137,6 +135,22 @@ rz_core_sources = [
   'tui/panels.c',
   'tui/tabs.c',
 ]
+
+if not get_option('windows_only')
+  rz_core_sources += [
+    'p/core_dex.c',
+    'p/core_java.c',
+  ]
+endif
+
+if get_option('windows_only')
+  core_plugins_list = []
+  core_plugins = {
+    'base_name': 'rz_core',
+    'base_struct': 'RzCorePlugin',
+    'list': core_plugins_list,
+  }
+endif
 
 rz_core_inc = ['.']
 if host_machine.system() == 'windows'

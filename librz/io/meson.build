@@ -37,6 +37,24 @@ if host_machine.system() == 'windows'
   ]
 endif
 
+if get_option('windows_only')
+  io_plugins_list = [
+    'debug',
+    'default',
+    'dmp',
+    'malloc',
+    'null',
+    'sparse',
+  ]
+  if host_machine.system() == 'windows'
+    io_plugins_list += [
+      'windbg',
+      'w32dbg',
+      'w32',
+    ]
+  endif
+endif
+
 io_plugins = {
   'base_name': 'rz_io',
   'base_struct': 'RzIOPlugin',
@@ -89,11 +107,36 @@ if host_machine.system() == 'windows'
   ]
 endif
 
+if get_option('windows_only')
+  rz_io_sources = [
+    'io.c',
+    'io_bounds.c',
+    'io_fd.c',
+    'io_map.c',
+    'io_memory.c',
+    'io_cache.c',
+    'io_desc.c',
+    'io_plugin.c',
+    'ioutils.c',
+    'p_cache.c',
+    'serialize_io.c',
+    'p/io_debug.c',
+    'p/io_default.c',
+    'p/io_dmp.c',
+    'p/io_malloc.c',
+    'p/io_null.c',
+    'p/io_sparse.c',
+  ]
+  if host_machine.system() == 'windows'
+    rz_io_sources += [
+      'p/io_windbg.c',
+      'p/io_w32.c',
+      'p/io_w32dbg.c',
+    ]
+  endif
+endif
+
 rz_io_deps = [
-  dependency('rzgdb'),
-  dependency('rzwinkd'),
-  libzip_dep,
-  dependency('rzar'),
   th,
   lrt,
   rz_util_dep,
@@ -104,6 +147,17 @@ rz_io_deps = [
   platform_deps,
 ]
 
+if get_option('windows_only')
+  rz_io_deps = [dependency('rzwinkd')] + rz_io_deps
+else
+  rz_io_deps = [
+    dependency('rzgdb'),
+    dependency('rzwinkd'),
+    libzip_dep,
+    dependency('rzar'),
+  ] + rz_io_deps
+endif
+
 if host_machine.system() == 'sunos'
   rz_io_deps += [
     cc.find_library('socket'),
@@ -112,7 +166,7 @@ if host_machine.system() == 'sunos'
   ]
 endif
 
-if get_option('use_gpl')
+if get_option('use_gpl') and not get_option('windows_only')
   rz_io_deps += dependency('rzqnx')
   rz_io_sources += 'p/io_qnx.c'
 endif

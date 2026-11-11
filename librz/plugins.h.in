@@ -6,6 +6,7 @@
 #define @MODULE_NAME@_PLUGINS_BUILD_H
 
 #define @MODULE_NAME@_STATIC_PLUGINS @plugin_static@
+#define @MODULE_NAME@_STATIC_PLUGINS_COUNT @plugin_count@
 
 @plugin_exports@
 // clang-format on

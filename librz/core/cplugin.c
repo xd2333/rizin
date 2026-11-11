@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include "rz_core_plugins.h"
 
+#if RZ_CORE_STATIC_PLUGINS_COUNT > 0
 static RzCorePlugin *core_static_plugins[] = { RZ_CORE_STATIC_PLUGINS };
+#endif
 
 static bool core_plugin_init(RzCore *core, RzCorePlugin *plugin, void **user) {
 	*user = NULL;
@@ -98,12 +100,14 @@ RZ_API bool rz_core_plugin_init(RzCore *core) {
 		RZ_FREE_CUSTOM(core->plugin_contexts, ht_sp_free);
 		return false;
 	}
+#if RZ_CORE_STATIC_PLUGINS_COUNT > 0
 	for (i = 0; i < RZ_ARRAY_SIZE(core_static_plugins); i++) {
 		if (!rz_core_plugin_add(core, core_static_plugins[i])) {
 			RZ_LOG_ERROR("core: error loading core plugin '%s'\n", core_static_plugins[i]->name);
 			res = false;
 		}
 	}
+#endif
 	return res;
 }
 

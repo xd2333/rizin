@@ -99,6 +99,20 @@ $ ninja -C build install
 You can run rizin from `.\rizin-install\bin`. If you don't specify any
 `--prefix`, meson will install rizin directly under `C:\`.
 
+### Windows-only build
+
+To build a slimmed-down Rizin that only supports Windows reverse engineering
+(x86/x64, PE/COFF/MZ/NE/LE/TE, PDB/DWARF, Windows debugging), configure with:
+
+```
+$ meson setup build-slim --buildtype=release -Dwindows_only=true
+```
+
+This disables all non-x86 architecture plugins, non-Windows file formats and
+remote/archive IO plugins, and builds only `rizin`, `rz-bin`, and `rz-asm`.
+Combine it with `-Duse_gpl=false -Denable_tests=false -Denable_rz_test=false`
+for the smallest build.
+
 ## Build with ASAN/UBSAN
 
 Use `-Db_sanitize=address,undefined` during the setup phase.

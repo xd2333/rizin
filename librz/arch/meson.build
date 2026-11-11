@@ -362,66 +362,68 @@ arch_isa_includes = [
   'isa',
 ]
 
-if capstone_dep.version() == 'next'
-  # plugins
-  arch_plugins_list += [
-    'alpha_cs',
-    'cbpf_cs',
-    'hppa_cs',
-    'loongarch_cs',
-    'riscv_cs',
-    'xtensa_cs',
-  ]
+if not get_option('windows_only')
+  if capstone_dep.version() == 'next'
+    # plugins
+    arch_plugins_list += [
+      'alpha_cs',
+      'cbpf_cs',
+      'hppa_cs',
+      'loongarch_cs',
+      'riscv_cs',
+      'xtensa_cs',
+    ]
 
-  # plugins sources
-  arch_plugin_sources += [
-    'p/arch_alpha.c',
-    'p/arch_cbpf_cs.c',
-    'p/arch_hppa_cs.c',
-    'p/arch_loongarch_cs.c',
-    'p/arch_riscv_cs.c',
-    'p/arch_xtensa_cs.c',
-  ]
+    # plugins sources
+    arch_plugin_sources += [
+      'p/arch_alpha.c',
+      'p/arch_cbpf_cs.c',
+      'p/arch_hppa_cs.c',
+      'p/arch_loongarch_cs.c',
+      'p/arch_riscv_cs.c',
+      'p/arch_xtensa_cs.c',
+    ]
 
-  # isa sources
-  arch_isa_sources += [
-    'isa/riscv/riscv_il.c',
-    'isa/riscv/riscv_il_integer.c',
-    'isa/riscv/riscv_il_m.c',
-    'isa/riscv/riscv_il_compressed.c',
-    'isa/xtensa/xtensa.c',
-    'isa/xtensa/xtensa_esil.c',
-    'isa/xtensa/xtensa_il.c',
-  ]
-endif
+    # isa sources
+    arch_isa_sources += [
+      'isa/riscv/riscv_il.c',
+      'isa/riscv/riscv_il_integer.c',
+      'isa/riscv/riscv_il_m.c',
+      'isa/riscv/riscv_il_compressed.c',
+      'isa/xtensa/xtensa.c',
+      'isa/xtensa/xtensa_esil.c',
+      'isa/xtensa/xtensa_il.c',
+    ]
+  endif
 
-if capstone_dep.version() == 'next' or capstone_dep.version().split('.')[0].to_int() >= 6
-  # plugins
-  arch_plugins_list += [
-    'bpf_cs',
-  ]
+  if capstone_dep.version() == 'next' or capstone_dep.version().split('.')[0].to_int() >= 6
+    # plugins
+    arch_plugins_list += [
+      'bpf_cs',
+    ]
 
-  # plugins sources
-  arch_plugin_sources += [
-    'p/arch_bpf_cs.c',
-  ]
-endif
+    # plugins sources
+    arch_plugin_sources += [
+      'p/arch_bpf_cs.c',
+    ]
+  endif
 
-if capstone_dep.version() == 'next' or capstone_dep.version().split('.')[0].to_int() >= 5
-  # plugins
-  arch_plugins_list += [
-    'tricore_cs',
-  ]
+  if capstone_dep.version() == 'next' or capstone_dep.version().split('.')[0].to_int() >= 5
+    # plugins
+    arch_plugins_list += [
+      'tricore_cs',
+    ]
 
-  # plugins sources
-  arch_plugin_sources += [
-    'p/arch_tricore_cs.c',
-  ]
+    # plugins sources
+    arch_plugin_sources += [
+      'p/arch_tricore_cs.c',
+    ]
 
-  # isa sources
-  arch_isa_sources += [
-    'isa/tricore/tricore_il.c',
-  ]
+    # isa sources
+    arch_isa_sources += [
+      'isa/tricore/tricore_il.c',
+    ]
+  endif
 endif
 
 if get_option('use_gpl')
@@ -462,6 +464,29 @@ if get_option('use_gpl')
   ]
 endif
 
+if get_option('windows_only')
+  arch_plugins_list = [
+    'null',
+    'x86_as',
+    'x86_nasm',
+    'x86_nz',
+    'x86_zydis',
+  ]
+
+  arch_plugin_sources = [
+    'p/arch_null.c',
+    'p/arch_x86_as.c',
+    'p/arch_x86_nasm.c',
+    'p/arch_x86_nz.c',
+    'p/arch_x86_zydis.c',
+  ]
+
+  arch_isa_sources = [
+    'isa/x86/common.c',
+    'isa/x86/x86_il.c',
+  ]
+endif
+
 arch_common_sources = [
   'acode.c',
   'analysis.c',
@@ -476,7 +501,6 @@ arch_common_sources = [
   'cycles.c',
   'data.c',
   'dwarf_process.c',
-  'luac_process.c',
   'fcn.c',
   'filter.c',
   'function.c',
@@ -487,7 +511,6 @@ arch_common_sources = [
   'meta.c',
   'no_rtti.c',
   'objc_rtti.c',
-  'omf_process.c',
   'op.c',
   'parse.c',
   'parse_helper.c',
@@ -512,6 +535,13 @@ arch_common_sources = [
   'xrefs.c',
 ]
 
+if not get_option('windows_only')
+  arch_common_sources += [
+    'luac_process.c',
+    'omf_process.c',
+  ]
+endif
+
 arch_common_includes = [
   '.',
 ]
@@ -529,27 +559,32 @@ rz_arch_inc = [
 
 rz_arch_sources = arch_isa_sources + arch_il_sources + arch_esil_sources + arch_plugin_sources + arch_common_sources
 
+rz_arch_deps = [
+  rz_util_dep,
+  rz_crypto_dep,
+  rz_reg_dep,
+  rz_syscall_dep,
+  rz_search_dep,
+  rz_config_dep,
+  rz_cons_dep,
+  rz_flag_dep,
+  rz_hash_dep,
+  rz_diff_dep,
+  rz_bin_dep,
+  rz_type_dep,
+  rz_il_dep,
+  zydis_dep,
+  mth,
+  dependency('rzspp'),
+]
+
+if not get_option('windows_only')
+  rz_arch_deps += [capstone_dep]
+endif
+
 rz_arch = library('rz_arch', rz_arch_sources,
   include_directories: rz_arch_inc,
-  dependencies: [
-    rz_util_dep,
-    rz_crypto_dep,
-    rz_reg_dep,
-    rz_syscall_dep,
-    rz_search_dep,
-    rz_config_dep,
-    rz_cons_dep,
-    rz_flag_dep,
-    rz_hash_dep,
-    rz_diff_dep,
-    rz_bin_dep,
-    rz_type_dep,
-    rz_il_dep,
-    capstone_dep,
-    zydis_dep,
-    mth,
-    dependency('rzspp'),
-  ],
+  dependencies: rz_arch_deps,
   install: true,
   implicit_include_directories: false,
   install_rpath: rpath_lib,

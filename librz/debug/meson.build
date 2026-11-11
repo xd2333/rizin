@@ -56,7 +56,6 @@ rz_debug_sources = [
 ]
 
 rz_debug_deps = [
-  dependency('rzgdb'),
   dependency('rzwinkd'),
   rz_util_dep,
   rz_cons_dep,
@@ -71,7 +70,11 @@ rz_debug_deps = [
   platform_deps
 ]
 
-if get_option('use_gpl')
+if not get_option('windows_only')
+  rz_debug_deps = [dependency('rzgdb')] + rz_debug_deps
+endif
+
+if get_option('use_gpl') and not get_option('windows_only')
   rz_debug_deps += dependency('rzqnx')
   rz_debug_sources += 'p/debug_qnx.c'
 endif
@@ -222,6 +225,28 @@ if host_machine.system() == 'windows'
     'p/native/windows/windows_message.c',
   ]
   rz_debug_deps += dependency('rzw32dbg_wrap')
+endif
+
+if get_option('windows_only')
+  debug_plugins_list = [
+    'dmp',
+    'io',
+    'null',
+  ]
+  if has_debugger
+    debug_plugins_list += ['native']
+  endif
+  if host_machine.system() == 'windows'
+    debug_plugins_list += 'windbg'
+  endif
+
+  rz_debug_sources_filtered = []
+  foreach src : rz_debug_sources
+    if src != 'p/debug_bochs.c' and src != 'p/debug_gdb.c' and src != 'p/debug_winkd.c'
+      rz_debug_sources_filtered += src
+    endif
+  endforeach
+  rz_debug_sources = rz_debug_sources_filtered
 endif
 
 rz_debug_inc = [

@@ -127,6 +127,9 @@ if get_option('default_library') == 'shared'
 endif
 
 add_project_arguments(['-DRZ_PLUGIN_INCORE=1'], language: 'c')
+if get_option('windows_only')
+  add_project_arguments('-DRZ_WINDOWS_ONLY=1', language: 'c')
+endif
 b_sanitize_opt = get_option('b_sanitize')
 if (b_sanitize_opt.contains('address') or b_sanitize_opt.contains('undefined')) and cc.get_id() == 'clang'
   add_project_arguments('-shared-libasan', language: 'c')
@@ -193,26 +196,31 @@ subproject_clean_error_msg = 'Subprojects are not updated. Please run `git clean
 # handle capstone dependency
 capstone_check_deps = []
 capstone_check_includes = []
-capstone_dep = dependency('capstone', version: '>=4.0.2', required: get_option('use_sys_capstone'), static: is_static_build)
-if not capstone_dep.found()
-  capstone_version = get_option('use_capstone_version')
-  if fs.is_file('subprojects/capstone-' + capstone_version + '.wrap')
-    r = run_command(py3_exe, check_meson_subproject_py, 'capstone-' + capstone_version, check: false)
-    if r.returncode() == 1 and get_option('subprojects_check')
-      error(subproject_clean_error_msg)
-    endif
-    capstone_proj = subproject('capstone-' + capstone_version, default_options: ['default_library=static'])
-  else
-    error('Wrong capstone version selected. Please use one of the supported versions.')
-  endif
-  capstone_dep = capstone_proj.get_variable('capstone_dep')
-  capstone_check_includes = capstone_proj.get_variable('capstone_includes')
+if get_option('windows_only')
+  # The Windows-only build uses Zydis for x86 and compiles no Capstone plugin.
+  capstone_dep = dependency('capstone', required: false)
 else
-  capstone_check_deps = [capstone_dep]
-  # Package managers CS version has no meta programming macros for AArch64 -> ARM64 renaming
-  # (because it is outdated).
-  # With this define we includeour copy of those macros.
-  add_project_arguments(['-DUSE_SYS_CAPSTONE'], language: 'c')
+  capstone_dep = dependency('capstone', version: '>=4.0.2', required: get_option('use_sys_capstone'), static: is_static_build)
+  if not capstone_dep.found()
+    capstone_version = get_option('use_capstone_version')
+    if fs.is_file('subprojects/capstone-' + capstone_version + '.wrap')
+      r = run_command(py3_exe, check_meson_subproject_py, 'capstone-' + capstone_version, check: false)
+      if r.returncode() == 1 and get_option('subprojects_check')
+        error(subproject_clean_error_msg)
+      endif
+      capstone_proj = subproject('capstone-' + capstone_version, default_options: ['default_library=static'])
+    else
+      error('Wrong capstone version selected. Please use one of the supported versions.')
+    endif
+    capstone_dep = capstone_proj.get_variable('capstone_dep')
+    capstone_check_includes = capstone_proj.get_variable('capstone_includes')
+  else
+    capstone_check_deps = [capstone_dep]
+    # Package managers CS version has no meta programming macros for AArch64 -> ARM64 renaming
+    # (because it is outdated).
+    # With this define we includeour copy of those macros.
+    add_project_arguments(['-DUSE_SYS_CAPSTONE'], language: 'c')
+  endif
 endif
 
 has_capstone_m68k_cpu32 = cc.compiles('''
@@ -979,11 +987,16 @@ summary({
   'bindings': rizin_bindings,
 }, section: 'Directories')
 
+capstone_version_str = 'disabled'
+if not get_option('windows_only')
+  capstone_version_str = capstone_dep.version()
+endif
+
 summary({
   'GPL code': get_option('use_gpl'),
   'Install sigdb': get_option('install_sigdb'),
   'Debugger enabled': has_debugger,
-  'Capstone version': capstone_dep.version(),
+  'Capstone version': capstone_version_str,
   'PCRE2 version': pcre2_dep.version(),
   'PCRE2 JIT': pcre2_jit_supported,
   'System magic library': sys_magic.found() and sys_magic.type_name() != 'internal',

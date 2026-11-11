@@ -97,6 +97,7 @@ foreach module_name, module : modules
       endforeach
       plugins_h.set('plugin_static', ', '.join(static_plugins))
       plugins_h.set('plugin_exports', '\n'.join(export_plugins))
+      plugins_h.set('plugin_count', plugin.get('list').length())
       plugins_h.set('MODULE_NAME', base_name.to_upper())
       configure_file(
         input: 'plugins.h.in',

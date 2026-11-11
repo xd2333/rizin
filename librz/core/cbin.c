@@ -210,12 +210,14 @@ RZ_API bool rz_core_bin_apply_info(RzCore *r, RzBinFile *binfile, ut32 mask) {
 		rz_core_bin_apply_dwarf(r, binfile);
 		rz_core_bin_apply_stabs(r, binfile);
 	}
+#ifndef RZ_WINDOWS_ONLY
 	if (mask & RZ_CORE_BIN_ACC_LUAC_DEBUG) {
 		rz_core_bin_apply_luac_debug(r, binfile);
 	}
 	if (mask & RZ_CORE_BIN_ACC_OMF_DEBUG) {
 		rz_core_bin_apply_omf_debug(r, binfile);
 	}
+#endif
 	if (mask & RZ_CORE_BIN_ACC_ENTRIES) {
 		rz_core_bin_apply_entry(r, binfile, va);
 	}

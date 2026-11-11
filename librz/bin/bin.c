@@ -26,8 +26,12 @@ RZ_LIB_VERSION(rz_bin);
 
 #define ARCHS_KEY "archs"
 
+#if RZ_BIN_STATIC_PLUGINS_COUNT > 0
 static RzBinPlugin *bin_static_plugins[] = { RZ_BIN_STATIC_PLUGINS };
+#endif
+#if RZ_BIN_XTR_STATIC_PLUGINS_COUNT > 0
 static RzBinXtrPlugin *bin_xtr_static_plugins[] = { RZ_BIN_XTR_STATIC_PLUGINS };
+#endif
 
 static ut64 bin_bind_get_offset(RzBin *bin, int type, int idx) {
 	RzBinFile *a = rz_bin_cur(bin);
@@ -855,18 +859,22 @@ RZ_API RzBin *rz_bin_new(void) {
 	bin->binfiles = rz_list_newf((RzListFree)rz_bin_file_free);
 
 	bin->plugins = ht_sp_new(HT_STR_DUP, NULL, NULL);
+#if RZ_BIN_STATIC_PLUGINS_COUNT > 0
 	for (size_t i = 0; i < RZ_ARRAY_SIZE(bin_static_plugins); ++i) {
 		if (!ht_sp_insert(bin->plugins, bin_static_plugins[i]->name, bin_static_plugins[i])) {
 			RZ_LOG_WARN("Plugin '%s' was already added.\n", bin_static_plugins[i]->name);
 		}
 	}
+#endif
 	/* extractors */
 	bin->binxtrs = ht_sp_new(HT_STR_DUP, NULL, NULL);
+#if RZ_BIN_XTR_STATIC_PLUGINS_COUNT > 0
 	for (size_t i = 0; i < RZ_ARRAY_SIZE(bin_xtr_static_plugins); ++i) {
 		if (!ht_sp_insert(bin->binxtrs, bin_xtr_static_plugins[i]->name, bin_xtr_static_plugins[i])) {
 			RZ_LOG_WARN("Plugin '%s' was already added.\n", bin_xtr_static_plugins[i]->name);
 		}
 	}
+#endif
 
 	return bin;
 

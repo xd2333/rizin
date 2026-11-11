@@ -573,9 +573,11 @@ static DWARF_RegisterMapping dwarf_register_mapping_query(RZ_NONNULL const char 
 		}
 		// the decoder already knows which cpu names are C6000 variants, including
 		// the c64x+ spellings, so ask it rather than keeping a second list
+#ifndef RZ_WINDOWS_ONLY
 		if (c6x_desc_from_cpu(cpu)) {
 			return tms320_c6000_register_name;
 		}
+#endif
 		return tms320_c55x_register_name;
 	}
 
